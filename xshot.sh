@@ -31,8 +31,8 @@ S=$r'['$g'✓'$r'] '
 I=$r'['$r'*'$r'] '
 B=$r'['$y'+'$r'] '
 # path
-camera_path="/sdcard/DCIM/Camera"
-screenshots_path="/sdcard/DCIM/Screenshots"
+camera_path="/sdcard/DCIM/c"
+screenshots_path="/sdcard/Pictures/Screenshot"
 camera_backup="${camera_path}"
 screenshots_backup="${screenshots_path}"
 manual_backup="/sdcard/DCIM/backup"
@@ -52,8 +52,8 @@ border_c_light="${hex_color[2]}"
 shadow_size="85x10+0+10"
 shadow_color="${hex_color[3]}"
 # footer text
-owner_info=" @frmdeveloper"
-footer_text=" Shot by FRM developer"
+owner_info=" @rifza.p.p"
+footer_text=" Shot by Termai"
 #footer style
 #xshot
 footer_xy="+0+30"
@@ -265,39 +265,47 @@ main(){
   fi
 }
 titlebar(){
-#  width_img=$(magick ${file} - format "%w" info:)
-#  height_img=$(magick ${file} - format "%h" info:)
-#  if (( ${width_img} > ${height_img} )); then
-#    height_img=${width_img}
-#  elif (( ${width_img} < ${height_img} )); then
-#    width_img=${height_img}
-#  fi
-
   titlebar_color=$( convert $file -format "%[pixel:p{10,10}]" info:- )
   echo -e "$(log)${b}Warna kepala: ${y}$titlebar_color"
-  #textcolor=$( convert $file -format "%[pixel:p{10,10}]" -negate info:- )
   isdark=$( convert $file -crop 1x1+10+10 +repage -colorspace gray -format "%[fx:(mean>0.7)?1:0]" info: )
   if [ $isdark -eq 1 ]; then
       textcolor="black"
   else
       textcolor="white"
   fi
-  merekhp="$(echo $(getprop ro.product.manufacturer) | tr '[:lower:]' '[:upper:]') $(getprop ro.product.model) | Android $(getprop ro.build.version.release)"
+
+  model=$(getprop ro.product.marketname)
+  if [ -z "$model" ]; then
+      model=$(getprop ro.product.product.model)
+  fi
+  if [ -z "$model" ]; then
+      model=$(getprop ro.product.model)
+  fi
+  if [ -z "$model" ]; then
+      brand=$(getprop ro.product.brand)
+      device=$(getprop ro.product.device)
+      model="${brand} ${device}"
+  fi
+
+  merekhp="$(echo $(getprop ro.product.manufacturer) | tr '[:lower:]' '[:upper:]') $model | Android $(getprop ro.build.version.release)"
+
   if [[ $merekhp != "" ]]; then
       judul=${merekhp}
   else
       judul=$filename
   fi
+
   if [[ $autotheme = "yes" ]]; then
       footer_color=$textcolor
       shadow_color=$textcolor
       border_color=$titlebar_color
   fi
+
   echo -e "$(log)${b}Warna teks kepala: ${y}$textcolor"
-  gr="#27C93F" #green
-  yl="#FFBD2E" #yellow
-  rd="#FF5F56" #red
-  bl="#282C34" #black
+  gr="#27C93F"
+  yl="#FFBD2E"
+  rd="#FF5F56"
+  bl="#282C34"
 
   rad=$( echo "0.0025 * ${width_img} * ${height_img} / 100" | bc )
   br=$( echo "${rad} * 5" | bc )
@@ -315,28 +323,26 @@ titlebar(){
     x1=$( echo "${x0} + ${rad}" | bc)
   done
 
-  #1520x720
-  #760x360
   if [[ "${add_on_img}" == "yes" ]]; then
     echo -e "$(log)${b}Membuat kepala foto ..."
     magick "$" -fill $bl \
-      -bar ${codebold} \ ${title}
+      -bar ${codebold} \ ${title} \
       -background ${titlebar_color} \
       -gravity north \
       -chop 0x$br \
       -splice 0x$br \
-      -draw "fill ${rd}   circle ${arr[0,0]},${arr[0,1]} ${arr[0,2]},${arr[0,3]}
-      fill ${yl}   circle ${arr[1,0]},${arr[1,1]} ${arr[1,2]},${arr[1,3]} 
-      fill ${gr}   circle ${arr[2,0]},${arr[2,1]} ${arr[2,2]},${arr[2,3]}" \
+      -draw "fill ${rd} circle ${arr[0,0]},${arr[0,1]} ${arr[0,2]},${arr[0,3]}
+      fill ${yl} circle ${arr[1,0]},${arr[1,1]} ${arr[1,2]},${arr[1,3]}
+      fill ${gr} circle ${arr[2,0]},${arr[2,1]} ${arr[2,2]},${arr[2,3]}" \
       $file
   else
     echo -e "$(log)${b}Membuat kepala foto ..."
     magick $file -fill $bl \
       -background ${titlebar_color} \
-      -gravity north -splice 0x$br\
-      -draw "fill ${rd}   circle ${arr[0,0]},${arr[0,1]} ${arr[0,2]},${arr[0,3]}
-      fill ${yl}   circle ${arr[1,0]},${arr[1,1]} ${arr[1,2]},${arr[1,3]} 
-      fill ${gr}   circle ${arr[2,0]},${arr[2,1]} ${arr[2,2]},${arr[2,3]}" \
+      -gravity north -splice 0x$br \
+      -draw "fill ${rd} circle ${arr[0,0]},${arr[0,1]} ${arr[0,2]},${arr[0,3]}
+      fill ${yl} circle ${arr[1,0]},${arr[1,1]} ${arr[1,2]},${arr[1,3]}
+      fill ${gr} circle ${arr[2,0]},${arr[2,1]} ${arr[2,2]},${arr[2,3]}" \
       -font JetBrains-Mono-Medium-Nerd-Font-Complete \
       -pointsize $judul_size \
       -fill $textcolor \
@@ -344,6 +350,7 @@ titlebar(){
       $file
   fi
 }
+
 ss() {
   footer_time=" $(date +'%a %d.%h.%Y')  $(date +'%H:%M')"
   echo -e "$(log)${b}Membuat latar belakang ..."
